@@ -67,7 +67,7 @@ public class MovementAscend extends Movement {
     public static double cost(CalculationContext context, int x, int y, int z, int destX, int destZ) {
         BlockState toPlace = context.get(destX, y, destZ);
         double additionalPlacementCost = 0;
-        if (!MovementHelper.canWalkOn(context.bsi, destX, y, destZ, toPlace)) {
+        if (!MovementHelper.canWalkOn(context, destX, y, destZ, toPlace)) {
             additionalPlacementCost = context.costOfPlacingAt(destX, y, destZ, toPlace);
             if (additionalPlacementCost >= COST_INF) {
                 return COST_INF;

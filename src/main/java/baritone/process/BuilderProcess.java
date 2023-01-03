@@ -652,7 +652,7 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
                     }
                     // this is not in render distance
                     if (!observedCompleted.contains(BetterBlockPos.longHash(blockX, blockY, blockZ))
-                          && !Baritone.settings().buildSkipBlocks.value.contains(schematic.desiredState(x, y, z, current, this.approxPlaceable).getBlock())) {
+                            && !Baritone.settings().buildSkipBlocks.value.contains(schematic.desiredState(x, y, z, current, this.approxPlaceable).getBlock())) {
                         // and we've never seen this position be correct
                         // therefore mark as incorrect
                         incorrectPositions.add(new BetterBlockPos(blockX, blockY, blockZ));
@@ -900,6 +900,7 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
                     TrapDoorBlock.OPEN, TrapDoorBlock.HALF
             );
 
+
     private boolean sameWithoutOrientation(BlockState first, BlockState second) {
         if (first.getBlock() != second.getBlock()) {
             return false;
@@ -939,7 +940,7 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
         if (current.equals(desired)) {
             return true;
         }
-        return Baritone.settings().buildIgnoreDirection.value && sameWithoutOrientation(current, desired);
+        return sameBlockstate(current, desired);
     }
 
     public class BuilderCalculationContext extends CalculationContext {

@@ -74,6 +74,7 @@ public class MovementTraverse extends Movement {
     }
 
     public static double cost(CalculationContext context, int x, int y, int z, int destX, int destZ) {
+
         BlockState pb0 = context.get(destX, y + 1, destZ);
         BlockState pb1 = context.get(destX, y, destZ);
         BlockState destOn = context.get(destX, y - 1, destZ);

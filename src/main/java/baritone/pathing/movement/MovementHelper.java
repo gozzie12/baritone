@@ -26,6 +26,7 @@ import baritone.api.utils.*;
 import baritone.api.utils.Rotation;
 import baritone.api.utils.input.Input;
 import baritone.pathing.movement.MovementState.MovementTarget;
+import baritone.pathing.precompute.Ternary;
 import baritone.utils.BlockStateInterface;
 import baritone.utils.ToolSet;
 import net.minecraft.core.BlockPos;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static baritone.pathing.movement.Movement.HORIZONTALS_BUT_ALSO_DOWN_____SO_EVERY_DIRECTION_EXCEPT_UP;
+import static baritone.pathing.precompute.Ternary.*;
 
 /**
  * Static helpers for cost calculation
@@ -111,9 +113,21 @@ public interface MovementHelper extends ActionCosts, Helper {
         if (block == Blocks.POWDER_SNOW) {
             return false;
         }
-        if (Baritone.settings().blocksToAvoid.value.contains(block)) {
-            return false;
+        return canWalkThroughPosition(bsi, x, y, z, state);
+    }
+
+    static Ternary canWalkThroughBlockState(IBlockState state) {
+        Block block = state.getBlock();
+        if (block == Blocks.AIR) {
+            return YES;
         }
+        if (block == Blocks.FIRE || block == Blocks.TRIPWIRE || block == Blocks.WEB || block == Blocks.END_PORTAL || block == Blocks.COCOA || block instanceof BlockSkull || block instanceof BlockTrapDoor || block == Blocks.END_ROD) {
+            return NO;
+        }
+        if (Baritone.settings().blocksToAvoid.value.contains(block)) {
+            return NO;
+        }
+
         if (block instanceof DoorBlock || block instanceof FenceGateBlock) {
             // Because there's no nice method in vanilla to check if a door is openable or not, we just have to assume
             // that anything that isn't an iron door isn't openable, ignoring that some doors introduced in mods can't
@@ -140,6 +154,7 @@ public interface MovementHelper extends ActionCosts, Helper {
             return canWalkOn(bsi, x, y - 1, z);
         }
 
+
         if (isFlowing(x, y, z, state, bsi)) {
             return false; // Don't walk through flowing liquids
         }
@@ -154,6 +169,7 @@ public interface MovementHelper extends ActionCosts, Helper {
             }
             return true;
         }
+
         if (block instanceof CauldronBlock) {
             return false;
         }
@@ -162,6 +178,7 @@ public interface MovementHelper extends ActionCosts, Helper {
         // therefore it's safe to not construct a blockpos from our x, y, z ints and instead just pass null
         return state.isPathfindable(bsi.access, BlockPos.ZERO, PathComputationType.LAND); // workaround for future compatibility =P
     }
+
 
     /**
      * canWalkThrough but also won't impede movement at all. so not including doors or fence gates (we'd have to right click),
@@ -308,6 +325,8 @@ public interface MovementHelper extends ActionCosts, Helper {
      * Can I walk on this block without anything weird happening like me falling
      * through? Includes water because we know that we automatically jump on
      * water
+     * <p>
+     * If changing something in this function remember to also change it in precomputed data
      *
      * @param bsi   Block state provider
      * @param x     The block's x position
@@ -330,13 +349,19 @@ public interface MovementHelper extends ActionCosts, Helper {
             return true;
         }
         if (block == Blocks.LADDER || (block == Blocks.VINE && Baritone.settings().allowVines.value)) { // TODO reconsider this
-            return true;
+            return YES;
         }
         if (block == Blocks.FARMLAND || block == Blocks.DIRT_PATH) {
             return true;
         }
         if (block == Blocks.ENDER_CHEST || block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) {
-            return true;
+            return YES;
+        }
+        if (block == Blocks.GLASS || block == Blocks.STAINED_GLASS) {
+            return YES;
+        }
+        if (block instanceof BlockStairs) {
+            return YES;
         }
         if (isWater(state)) {
             // since this is called literally millions of times per second, the benefit of not allocating millions of useless "pos.up()"
@@ -354,6 +379,7 @@ public interface MovementHelper extends ActionCosts, Helper {
             // if assumeWalkOnWater is off, we can only walk on water if there is water above it
             return isWater(upState) ^ Baritone.settings().assumeWalkOnWater.value;
         }
+
         if (Baritone.settings().assumeWalkOnLava.value && isLava(state) && !isFlowing(x, y, z, state, bsi)) {
             return true;
         }
